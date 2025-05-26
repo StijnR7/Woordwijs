@@ -44,7 +44,7 @@ function Game() {
       alert("goed");  
       
     }
-    
+    e.target.chosenWord.value = "";
 
 
   }

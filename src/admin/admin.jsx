@@ -11,11 +11,11 @@ import {
 } from "react-router-dom";
 
 function Admin() {
-    const [DescriptionCount, setDescriptionCount] = useState(2);
+    const [DescriptionCount, setDescriptionCount] = useState(1);
     const [AllWords, setAllWords] = useState([])
     const ChangeDescAmount = (e) => {
       e.preventDefault();
-      setDescriptionCount(e.target.DescAmount.value);
+      setDescriptionCount(e.target.value);
 
 
     }
@@ -30,6 +30,7 @@ function Admin() {
     getWords();
 
   }, [])
+    
 
      const  AddItem = async (e) => {
         e.preventDefault(); 
@@ -65,16 +66,14 @@ function Admin() {
     }
     return inputs;
 }
-
   
   return (
     <>
-    <form onSubmit={ChangeDescAmount}>
-      <input placeholder='Aantal beschrijvingen' name="DescAmount" type="number" />
-      <button>Go</button>
-    </form>
+   
+    <input defaultValue="1" onChange={ChangeDescAmount} placeholder='Aantal beschrijvingen' name="DescAmount" type="number" />
+     
      <form onSubmit={AddItem}>
-        <input placeholder='Woord' type="text" name="Word" />
+        <input  placeholder='Woord' type="text" name="Word" />
         {showDescriptions()}
         <button type="submit">Voeg woord toe</button>
      </form>
