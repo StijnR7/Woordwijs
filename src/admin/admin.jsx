@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import './Admin.css'
-import { getDocs, collection, addDoc } from 'firebase/firestore'
+import { collection, addDoc } from 'firebase/firestore'
 import { db } from '../config/firebase'
 
 function Admin() {
