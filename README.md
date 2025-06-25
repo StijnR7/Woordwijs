@@ -5,6 +5,7 @@ De applicatie is bedoeld als leeropdracht en bevat de basisfunctionaliteit van e
 
 ## Belangrijk
 - Kijk in de [Wiki](./wiki) voor uitgebreide projectdocumentatie en overdrachtsinformatie.
+- voor de Designs kijk in [design](./design) voor de juiste bestanden.
 
 
 ## Features
