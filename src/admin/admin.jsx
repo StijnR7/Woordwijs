@@ -1,78 +1,91 @@
-import { useState } from 'react'
-import './Admin.css'
-import { collection, addDoc } from 'firebase/firestore'
-import { db } from '../config/firebase'
+import { useState, useEffect } from "react";
+import "./Admin.css";
 
 function Admin() {
-    const [DescriptionCount, setDescriptionCount] = useState(2)
+  const [descriptionCount, setDescriptionCount] = useState(1);
+  const [allWords, setAllWords] = useState([]);
 
-    const ChangeDescAmount = (e) => {
-        e.preventDefault()
-        setDescriptionCount(e.target.DescAmount.value)
+  const getWords = async () => {
+    const res = await fetch("http://localhost:5000/api/words");
+    const data = await res.json();
+    setAllWords(data);
+  };
+
+  useEffect(() => {
+    getWords();
+  }, []);
+
+  const handleChangeCount = (e) => {
+    setDescriptionCount(Number(e.target.value));
+  };
+
+  const addItem = async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const descriptions = [];
+
+    for (let element of form.elements) {
+      if (element.name.includes("description") && element.value.trim() !== "") {
+        descriptions.push(element.value.trim());
+      }
     }
 
-    const AddItem = async (e) => {
-        e.preventDefault()
-        let descriptions = []
-        for (let descElement of e.target.elements) {
-            if (descElement.name.includes("description")) {
-                descriptions.push(descElement.value)
-            }
-        }
+    const word = form.Word.value.trim();
+    if (!word || descriptions.length === 0) return;
 
-        await addDoc(collection(db, "Words"), {
-            Word: e.target.Word.value,
-            Descriptions: descriptions
-        })
+    await fetch("http://localhost:5000/api/words", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ word, descriptions }),
+    });
+
+    form.reset();
+    getWords();
+  };
+
+  const deleteItem = async (id) => {
+    await fetch(`http://localhost:5000/api/words/${id}`, {
+      method: "DELETE",
+    });
+    getWords();
+  };
+
+  const renderDescriptions = () => {
+    const inputs = [];
+    for (let i = 0; i < descriptionCount; i++) {
+      inputs.push(
+        <input key={i} name={`description${i}`} placeholder="Beschrijving" />
+      );
     }
+    return inputs;
+  };
 
-    const showDescriptions = () => {
-        const inputs = []
-        for (let i = 0; i < DescriptionCount; i++) {
-            let inputName = "description" + i
-            inputs.push(<input className="text-white bg-[#6c6bc4] border-none rounded-2xl m-2 p-4 w-50 text-center font-bold" key={i} type="text" name={inputName} placeholder={`Beschrijving ${i + 1}`} />)
-        }
-        return inputs
-    }
-
-    return (
-        <>
-            <div className="headers bg-white w-screen">
-                <img src="src/img/Logo van ROC-Nijmegen.svg" alt="RocLogo" className="roclogo" />
-            </div>
-
-            <div className="diagonal-split">
-                <h1 className="roct">Nieuw woord toevoegen</h1>
-
-                <form onSubmit={ChangeDescAmount}>
-                    <input
-                        className="text-white bg-[#6c6bc4] border-none rounded-2xl p-4 w-60 text-center font-bold"
-                        placeholder='Aantal beschrijvingen'
-                        name="DescAmount"
-                        type="number"
-                    />
-                    <div className="margintop">
-                        <button type="submit">Bevestig aantal</button>
-                    </div>
-                </form>
-
-                <form onSubmit={AddItem}>
-                    <input
-                        className="text-white bg-[#6c6bc4] border-none rounded-2xl p-4 w-50 text-center font-bold m-2"
-                        placeholder='Woord'
-                        type="text"
-                        name="Word"
-                    />
-
-
-                    {showDescriptions()}
-                    <div className="margintop">
-                        <button type="submit">Voeg woord toe</button>
-                    </div>
-                </form>
-            </div>
-        </>
-    )
+  return (
+    <div>
+      <input
+        type="number"
+        defaultValue={1}
+        onChange={handleChangeCount}
+        placeholder="Aantal beschrijvingen"
+      />
+      <form onSubmit={addItem}>
+        <input placeholder="Woord" type="text" name="Word" />
+        {renderDescriptions()}
+        <button type="submit">Voeg woord toe</button>
+      </form>
+      {allWords.map((word) => (
+        <div key={word.id}>
+          <div>{word.word}</div>
+          <ul>
+            {JSON.parse(word.descriptions).map((desc, i) => (
+              <li key={i}>{desc}</li>
+            ))}
+          </ul>
+          <button onClick={() => deleteItem(word.id)}>Verwijder</button>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 export default Admin
