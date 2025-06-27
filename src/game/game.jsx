@@ -1,68 +1,69 @@
-
- 
-  import { useState, useEffect } from 'react'
-
-import '../App.css'
-import {getDocs, collection, doc, addDoc, deleteDoc} from 'firebase/firestore'
-import { db } from '../config/firebase';
-import Admin from '../admin/admin';
-import {
-  Router,
-  Routes,
-  Route,
-  Link
-} from "react-router-dom";
-
+import { useState, useEffect } from "react";
+import "../App.css";
 
 function Game() {
- const [AllWords, setAllWords] = useState([])
-  const [WordToDescribe, setWordToDescribe] = useState({
-    Word: "hoi",
-    Descriptions: ["groet", "hallo"]
-
-
-  })
-
+  const [AllWords, setAllWords] = useState([]);
+  const [WordToDescribe, setWordToDescribe] = useState(null);
 
   useEffect(() => {
     const getWords = async () => {
-      const data = await getDocs(collection(db, "Words"))
-      setAllWords(data.docs.map((doc) => ({...doc.data(), id: doc.id})));
-      
-     
-    }
-    
+      try {
+        const res = await fetch("http://localhost:5000/api/words");
+        const data = await res.json();
+        setAllWords(data);
+        if (data.length > 0) {
+          setWordToDescribe(data[Math.floor(Math.random() * data.length)]);
+        }
+      } catch (err) {
+        console.error("Fout bij ophalen van woorden:", err);
+      }
+    };
     getWords();
+  }, []);
 
-  }, [])
+const CheckIfCorrect = (e) => {
+  e.preventDefault();
 
-  const CheckIfCorrect = (e) => {
-    
-    e.preventDefault();
-    if(WordToDescribe.Descriptions.includes(e.target.chosenWord.value)){
-      setWordToDescribe(AllWords[Math.floor(Math.random() * AllWords.length)]);
-      alert("goed");  
-      
-    }
-    e.target.chosenWord.value = "";
-
-
+  if (!Array.isArray(WordToDescribe.description)) {
+    alert("Beschrijving is niet beschikbaar");
+    return;
   }
+
+  const guess = e.target.chosenWord.value.toLowerCase();
+  const descriptions = WordToDescribe.description.map(d => d.toLowerCase());
+
+  if (descriptions.includes(guess)) {
+    alert("Goed!");
+    const nextWord = AllWords[Math.floor(Math.random() * AllWords.length)];
+    setWordToDescribe(nextWord);
+  } else {
+    alert("Helaas, probeer nog eens!");
+    console.log("Foute gok:", guess);
+    console.log("Beschrijvingen:", descriptions);
+  }
+  
+  e.target.chosenWord.value = "";
+};
+
+
+  if (!WordToDescribe) return <p>Laden...</p>;
+
   return (
-    <>
-    
-     <div id="GameContainer">
+    <div id="GameContainer">
       <div id="WordContainer">
-        <p id="WordToDescribe">{WordToDescribe.Word}</p>
+        <p id="WordToDescribe">{WordToDescribe.word}</p>
       </div>
       <form onSubmit={CheckIfCorrect}>
-        <input type="text" name="chosenWord" id="WordInput" />
+        <input
+          type="text"
+          name="chosenWord"
+          id="WordInput"
+          autoComplete="off"
+        />
         <button type="submit">Guess</button>
-
       </form>
-     </div>
-    </>
-  )
+    </div>
+  );
 }
 
-export default Game
+export default Game;
